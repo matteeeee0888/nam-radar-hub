@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<title>Radar NAM</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f0ea;--card:#ffffff;--ink:#14161c;--muted:#61646e;--line:#e2ddd3;--accent:#ffcc00;--dark:#14161c;--err:#b4471f;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--bg);color:var(--ink);font:15px/1.5 "Inter",ui-sans-serif,-apple-system,"Segoe UI",system-ui,sans-serif;padding:16px}
+main{width:min(420px,100%);background:var(--card);border:1px solid var(--line);border-radius:20px;padding:34px 28px 28px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:22px}
+.dot{width:34px;height:34px;border-radius:10px;background:var(--dark);display:grid;place-items:center;color:var(--accent);font-weight:800;font-size:15px;letter-spacing:-.02em}
+.brand b{font-weight:800;letter-spacing:-.01em}
+.brand span{color:var(--muted);font-size:13px;display:block;line-height:1.2}
+h1{font-size:26px;line-height:1.15;margin:0 0 8px;font-weight:800;letter-spacing:-.02em}
+p{color:var(--muted);margin:0 0 20px;font-size:14px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+input{width:100%;font:inherit;padding:12px 16px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--ink)}
+input:focus{outline:2px solid var(--dark);outline-offset:1px}
+button{margin-top:14px;width:100%;font:inherit;font-weight:700;padding:12px 16px;border:0;border-radius:999px;background:var(--dark);color:var(--accent);cursor:pointer}
+button:disabled{opacity:.6;cursor:progress}
+#err{color:var(--err);min-height:1.2em;margin:12px 0 0;font-size:13px;text-align:center}
+small{display:block;margin-top:18px;color:var(--muted);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<main>
+  <div class="brand"><div class="dot">N</div><div><b>NAM Studio</b><span>Radar creatività</span></div></div>
+  <h1>Il tuo radar del mercato</h1>
+  <p>Inserisci la password che ti abbiamo dato: si apre l'ambiente con le ads del tuo settore.</p>
+  <form id="f" autocomplete="on">
+    <label for="pw">Password</label>
+    <input id="pw" name="password" type="password" autocomplete="current-password" autocapitalize="off" spellcheck="false" required autofocus>
+    <button id="go" type="submit">Entra</button>
+    <p id="err" hidden></p>
+  </form>
+  <small>La password non lascia questo browser.</small>
+</main>
+<script>
+const f = document.getElementById("f"), go = document.getElementById("go"), err = document.getElementById("err");
+async function percorso(pw){
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("nam-radar:" + pw));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, "0")).join("").slice(0, 16);
+}
+f.addEventListener("submit", async e => {
+  e.preventDefault();
+  err.hidden = true; go.disabled = true;
+  const pw = document.getElementById("pw").value.trim().normalize("NFC");
+  try{
+    const h = await percorso(pw);
+    const r = await fetch(h + "/index.html", {method: "HEAD", cache: "no-store"});
+    if(!r.ok) throw new Error("no");
+    try{ sessionStorage.setItem("radar-pw-radar.namstudio.it/" + h, pw); }catch(x){}
+    location.href = h + "/";
+  }catch(x){
+    go.disabled = false; err.hidden = false;
+    err.textContent = x.message === "no" ? "Password non riconosciuta." : "Questo browser non supporta la pagina: aggiorna Chrome, Safari o Firefox.";
+  }
+});
+</script>
+</body>
+</html>
